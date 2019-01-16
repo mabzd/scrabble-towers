@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using ScrabbleTowers.Engine;
@@ -24,23 +26,46 @@ namespace ScrabbleTowers
                 if (line == null)
                     return;
 
-                line = line.Trim().ToLowerInvariant();
+                line = line.ToLowerInvariant();
 
                 if (line == "q")
                     return;
 
-                var words = dict
-                    .MatchWords(line)
-                    .OrderBy(w => w.Length)
-                    .ToList();
-
-                for (int i = 0; i < words.Count - 1; i++)
+                try
                 {
-                    Console.WriteLine(" |` " + words[i]);
+                    Play(dict, line);
                 }
-
-                Console.WriteLine("  ` " + words[words.Count - 1]);
+                catch (Exception e)
+                {
+                    Console.WriteLine(" ! ERROR: " + e.Message);
+                }
             }
+        }
+
+        private static void Play(Dictionary dict, string line)
+        {
+            var board = new Board(line.Select(g => g == ' ' ? (char?)null : g));
+
+            var words = dict
+                .MatchWords(line)
+                .OrderBy(w => w.Length)
+                .ToList();
+
+            var allowed = words
+                .Where(w => board.IsAllowed(w))
+                .ToList();
+
+            PrintWords(allowed);
+        }
+
+        private static void PrintWords(List<string> words)
+        {
+            for (int i = 0; i < words.Count - 1; i++)
+            {
+                Console.WriteLine(" |` " + words[i]);
+            }
+
+            Console.WriteLine("  ` " + words[words.Count - 1]);
         }
 
         private static async Task<Dictionary> LoadDictionary()
