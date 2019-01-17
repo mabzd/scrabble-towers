@@ -52,23 +52,23 @@ namespace ScrabbleTowers.Engine
             return Traverse(Tiles, 0, word);
         }
 
-        private bool Traverse(ICollection<Tile> neighbours, int visited, string word)
+        private bool Traverse(ICollection<Tile> neighbors, int visited, string word)
         {
             var glyph = word[0];
             word = word.Substring(1);
 
-            foreach (var neighbour in neighbours)
+            foreach (var neighbor in neighbors)
             {
-                var bit = 1 << neighbour.Position;
+                var bit = 1 << neighbor.Position;
                 var isVisited = (visited & bit) == bit;
 
-                if (!isVisited && (neighbour.Glyph == null || neighbour.Glyph.Value == glyph))
+                if (!isVisited && (neighbor.Glyph == null || neighbor.Glyph.Value == glyph))
                 {
                     if (word == "")
                         return true;
 
-                    visited |= bit;
-                    return Traverse(neighbour.Neighbours, visited, word);
+                    if (Traverse(neighbor.Neighbors, visited | bit, word))
+                        return true;
                 }
             }
 
@@ -109,10 +109,10 @@ namespace ScrabbleTowers.Engine
                 {
                     foreach (var direction in Directions)
                     {
-                        var neighbour = GetNeighbour(tiles, position, direction);
+                        var neighbor = GetNeighbor(tiles, position, direction);
 
-                        if (neighbour != null)
-                            tile.Neighbours.Add(neighbour);
+                        if (neighbor != null)
+                            tile.Neighbors.Add(neighbor);
                     }
                 }
             }
@@ -130,7 +130,7 @@ namespace ScrabbleTowers.Engine
             return y * 3 + x;
         }
 
-        private Tile GetNeighbour(IList<Tile> tiles, int position, Direction direction)
+        private Tile GetNeighbor(IList<Tile> tiles, int position, Direction direction)
         {
             var (x, y) = PositionToXy(position);
 

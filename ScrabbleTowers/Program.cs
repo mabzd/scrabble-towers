@@ -26,6 +26,7 @@ namespace ScrabbleTowers
             while (true)
             {
                 var line = Console.ReadLine();
+                line = "ołaz ijdo";
 
                 if (line == null)
                     return;

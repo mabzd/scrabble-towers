@@ -8,11 +8,11 @@ namespace ScrabbleTowers.Engine
         {
             Glyph = glyph;
             Position = position;
-            Neighbours = new List<Tile>(8);
+            Neighbors = new List<Tile>(8);
         }
 
         public char? Glyph { get; }
         public int Position { get; }
-        public ICollection<Tile> Neighbours { get; }
+        public ICollection<Tile> Neighbors { get; }
     }
 }
