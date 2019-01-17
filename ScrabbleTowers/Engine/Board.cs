@@ -1,25 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ScrabbleTowers.Engine
 {
-    public class Board
+    public class Board : IEnumerable<Tile>
     {
-        private class Tile
-        {
-            public Tile(int position, char? glyph)
-            {
-                Glyph = glyph;
-                Position = position;
-                Neighbours = new List<Tile>(8);
-            }
-
-            public char? Glyph { get; }
-            public int Position { get; }
-            public ICollection<Tile> Neighbours { get; }
-        }
-
         private struct Direction
         {
             public Direction(int x, int y)
@@ -53,6 +40,11 @@ namespace ScrabbleTowers.Engine
             var tiles = CreateTiles(glyphs).ToList();
             LinkTiles(tiles);
             Tiles = tiles.Where(t => t != null).ToList();
+        }
+
+        public IEnumerator<Tile> GetEnumerator()
+        {
+            return Tiles.GetEnumerator();
         }
 
         public bool IsAllowed(string word)
@@ -150,6 +142,11 @@ namespace ScrabbleTowers.Engine
 
             var newPosition = XyToPosition(x, y);
             return tiles[newPosition];
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

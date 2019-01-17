@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using ScrabbleTowers.Utils;
 
@@ -27,9 +28,10 @@ namespace ScrabbleTowers.Engine
 
         public int Words => _stats.Words;
 
-        public IEnumerable<string> MatchWords(string letters)
+        public IEnumerable<string> MatchWords(Board board)
         {
-            var pattern = Game.GetBitword(letters);
+            var boardLetters = new string(board.Select(t => t.Glyph ?? '*').ToArray());
+            var pattern = Game.GetBitword(boardLetters);
 
             if (pattern == 0UL)
                 throw new InvalidOperationException("Board arrangement not possible");

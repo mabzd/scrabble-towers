@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using ScrabbleTowers.Engine;
 using ScrabbleTowers.Utils;
@@ -17,6 +18,9 @@ namespace ScrabbleTowers
 
         static async Task MainAsync()
         {
+            Console.InputEncoding = Encoding.UTF8;
+            Console.OutputEncoding = Encoding.UTF8;
+
             var dict = await LoadDictionary();
 
             while (true)
@@ -25,6 +29,9 @@ namespace ScrabbleTowers
 
                 if (line == null)
                     return;
+
+                //todo this is for debug:
+                Console.WriteLine(line.Length);
 
                 line = line.ToLowerInvariant();
 
@@ -47,7 +54,7 @@ namespace ScrabbleTowers
             var board = new Board(line.Select(g => g == ' ' ? (char?)null : g));
 
             var words = dict
-                .MatchWords(line)
+                .MatchWords(board)
                 .OrderBy(w => w.Length)
                 .ToList();
 
