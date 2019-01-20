@@ -22,7 +22,57 @@ namespace ScrabbleTowers
             Console.OutputEncoding = Encoding.UTF8;
 
             var dict = await LoadDictionary();
+            //UserInput(dict);
+            BoardHistogram(dict);
+        }
 
+        private static void BoardTest(Dictionary dict)
+        {
+            while (true)
+            {
+                var board = Games.Polish.GetRandomBoard();
+
+                Print(board);
+
+                var layer = board.GetTopLayer();
+                var longestWord = dict
+                    .MatchWords(layer)
+                    .Where(layer.IsAllowed)
+                    .OrderBy(w => w.Length)
+                    .LastOrDefault();
+
+                Console.WriteLine(longestWord);
+                Console.ReadLine();
+            }
+        }
+
+        private static void BoardHistogram(Dictionary dict)
+        {
+            var histogram = new int[9];
+            var sample = Console.ReadLine();
+
+            for(int i=0; i < int.Parse(sample); i++)
+            {
+                var board = Games.Polish.GetRandomBoard();
+                var layer = board.GetTopLayer();
+                var longestWord = dict
+                    .MatchWords(layer)
+                    .Where(layer.IsAllowed)
+                    .OrderBy(w => w.Length)
+                    .LastOrDefault();
+
+                if (longestWord != null)
+                    histogram[longestWord.Length - 1] += 1;
+            }
+
+            for (int i=0; i<9; i++)
+            {
+                Console.WriteLine($"{i+1}: {histogram[i]:n0}");
+            }
+        }
+
+        private static void UserInput(Dictionary dict)
+        {
             while (true)
             {
                 var line = Console.ReadLine();
@@ -73,6 +123,20 @@ namespace ScrabbleTowers
             }
 
             Console.WriteLine("  ` " + words[words.Count - 1]);
+        }
+
+        private static void Print(Board board)
+        {
+            for (int i=0; i < 9; i += 3)
+            {
+                var a = board.GetTile(i+0)?.Glyph ?? ' ';
+                var b = board.GetTile(i+1)?.Glyph ?? ' ';
+                var c = board.GetTile(i+2)?.Glyph ?? ' ';
+                Console.WriteLine("+-+-+-+");
+                Console.WriteLine($"|{a}|{b}|{c}|");
+            }
+
+            Console.WriteLine("+-+-+-+");
         }
 
         private static async Task<Dictionary> LoadDictionary()

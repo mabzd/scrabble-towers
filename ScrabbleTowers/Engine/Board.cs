@@ -12,7 +12,7 @@ namespace ScrabbleTowers.Engine
                 Tiles = tiles?.ToList() ?? new List<Tile>();
             }
 
-            public ICollection<Tile> Tiles { get; }
+            public IList<Tile> Tiles { get; }
         }
 
         private readonly Stack[] Stacks = new Stack[BoardLayer.MAX_TILES];
@@ -21,6 +21,28 @@ namespace ScrabbleTowers.Engine
         {
             for(int i = 0; i < BoardLayer.MAX_TILES; i++)
                 Stacks[i] = new Stack();
+        }
+
+        public Tile GetTile(int x, int y)
+        {
+            return GetTile(Tile.ToPosition(x, y));
+        }
+
+        public Tile GetTile(int position)
+        {
+            return Stacks[position].Tiles.LastOrDefault();
+        }
+
+        public void RemoveTile(int x, int y)
+        {
+            RemoveTile(Tile.ToPosition(x, y));
+        }
+
+        public void RemoveTile(int position)
+        {
+            var count = Stacks[position].Tiles.Count;
+            if (count > 0)
+                Stacks[position].Tiles.RemoveAt(count - 1);
         }
 
         public void AddStack(int x, int y, IEnumerable<Letter> letters)
