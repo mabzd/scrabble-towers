@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrabbleTowers", "ScrabbleT
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{0B18244E-E994-4402-937C-77BC1D36C9E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrabbleTowers.Tests", "..\ScrabbleTowers.Tests\ScrabbleTowers.Tests.csproj", "{856AEDED-F010-4D83-BA44-32466450ED33}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrabbleTowers.Tests", "ScrabbleTowers.Tests\ScrabbleTowers.Tests.csproj", "{856AEDED-F010-4D83-BA44-32466450ED33}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

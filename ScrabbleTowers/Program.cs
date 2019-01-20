@@ -26,7 +26,6 @@ namespace ScrabbleTowers
             while (true)
             {
                 var line = Console.ReadLine();
-                line = "ołaz ijdo";
 
                 if (line == null)
                     return;
@@ -52,7 +51,7 @@ namespace ScrabbleTowers
 
         private static void Play(Dictionary dict, string line)
         {
-            var board = new Board(line.Select(g => g == ' ' ? (char?)null : g));
+            var board = new BoardLayer(line.Select(g => g == ' ' ? (char?)null : g));
 
             var words = dict
                 .MatchWords(board)

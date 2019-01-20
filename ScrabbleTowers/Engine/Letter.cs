@@ -2,13 +2,13 @@
 {
     public class Letter
     {
-        public Letter(char glyph, int count)
+        public Letter(char glyph, LetterColor color = LetterColor.Transparent)
         {
             Glyph = glyph;
-            Count = count;
+            Color = color;
         }
 
         public char Glyph { get; }
-        public int Count { get; }
+        public LetterColor Color { get; }
     }
 }

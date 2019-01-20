@@ -8,7 +8,7 @@ using ScrabbleTowers.Utils;
 namespace ScrabbleTowers.Engine
 {
     public class DictionaryStats
-    {   
+    {
         public int Lines { get; set; }
         public int Words { get; set; }
     }
@@ -28,15 +28,15 @@ namespace ScrabbleTowers.Engine
 
         public int Words => _stats.Words;
 
-        public IEnumerable<string> MatchWords(Board board)
+        public IEnumerable<string> MatchWords(IEnumerable<Tile> tiles, bool wildcard = false)
         {
-            var boardLetters = new string(board.Select(t => t.Glyph ?? '*').ToArray());
-            var pattern = Game.GetBitword(boardLetters);
+            var letters = new string(tiles.Select(t => t.Glyph).ToArray());
+            var pattern = Game.GetBitword(letters, wildcard);
 
             if (pattern == 0UL)
                 throw new InvalidOperationException("Board arrangement not possible");
 
-            var isMatch = Game.HasWildcard(pattern)
+            var isMatch = wildcard
                 ? (Func<Word, ulong, bool>)IsWildcardMatch
                 : IsMatch;
 

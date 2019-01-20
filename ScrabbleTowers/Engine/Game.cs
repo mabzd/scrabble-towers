@@ -1,20 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using ScrabbleTowers.Utils;
 
 namespace ScrabbleTowers.Engine
 {
     public class Game
     {
-        private class InternalLetter
+        private class LetterGroup
         {
-            public InternalLetter(Letter letter, int offset)
+            public LetterGroup(IEnumerable<Letter> letters, int offset)
             {
-                Letter = letter;
+                Letters = letters.ToList();
                 Offset = offset;
             }
 
-            public Letter Letter { get; }
+            public ICollection<Letter> Letters { get; }
             public int Offset { get; }
         }
 
@@ -22,14 +23,37 @@ namespace ScrabbleTowers.Engine
         private const int MAX_WORD_LENGTH = 9;
 
         private readonly string Language;
-        private readonly IDictionary<char, InternalLetter> LetterMap;
+        private readonly IEnumerable<Letter> Letters;
+        private readonly IDictionary<char, LetterGroup> LetterMap;
         private readonly ulong WildcardBit;
+        private readonly Random Rng = new Random();
 
-        public Game(string language, ICollection<Letter> letters)
+        public Game(string language, IEnumerable<Letter> letters)
         {
             Language = language;
+            Letters = letters;
             LetterMap = ToLetterMap(letters, out int wildcardOffset);
             WildcardBit = 1UL << wildcardOffset;
+        }
+
+        public Board GetRandomBoard()
+        {
+            var shuffled = Letters
+                .OrderBy(l => Rng.Next())
+                .GetEnumerator()
+                .ToEnumerable();
+
+            var board = new Board();
+            board.AddStack(0, shuffled.Take(5));
+            board.AddStack(1, shuffled.Take(5));
+            board.AddStack(2, shuffled.Take(5));
+            board.AddStack(3, shuffled.Take(5));
+            board.AddStack(4, shuffled.Take(4));
+            board.AddStack(5, shuffled.Take(5));
+            board.AddStack(6, shuffled.Take(5));
+            board.AddStack(7, shuffled.Take(5));
+            board.AddStack(8, shuffled.Take(5));
+            return board;
         }
 
         public bool HasWildcard(ulong bitword)
@@ -37,23 +61,22 @@ namespace ScrabbleTowers.Engine
             return (bitword & WildcardBit) == WildcardBit;
         }
 
-        public ulong GetBitword(string word)
+        public ulong GetBitword(string word, bool wildcard = false)
         {
             if (word.Length > MAX_WORD_LENGTH)
                 return 0UL;
 
-            var bitword = 0UL;
-            var hasWildcard = false;
+            var bitword = wildcard ? WildcardBit : 0UL;
 
             foreach (var character in word)
             {
                 var charAdded = false;
 
-                if (LetterMap.TryGetValue(character, out var letter))
+                if (LetterMap.TryGetValue(character, out var group))
                 {
-                    var offset = letter.Offset;
+                    var offset = group.Offset;
 
-                    for (var i = 0; i < letter.Letter.Count; i++)
+                    for (var i = 0; i < group.Letters.Count; i++)
                     {
                         var bit = 1UL << (offset + i);
 
@@ -68,10 +91,10 @@ namespace ScrabbleTowers.Engine
 
                 if (!charAdded)
                 {
-                    if (!hasWildcard)
+                    if (!wildcard)
                     {
                         bitword |= WildcardBit;
-                        hasWildcard = true;
+                        wildcard = true;
                     }
                     else
                     {
@@ -83,23 +106,24 @@ namespace ScrabbleTowers.Engine
             return bitword;
         }
 
-        private IDictionary<char, InternalLetter> ToLetterMap(IEnumerable<Letter> letters, out int wildcardOffset)
+        private IDictionary<char, LetterGroup> ToLetterMap(IEnumerable<Letter> letters, out int wildcardOffset)
         {
-            var offsets = new Dictionary<char, InternalLetter>();
-            int position = 0;
+            var result = new Dictionary<char, LetterGroup>();
+            int offset = 0;
 
-            foreach (var letter in letters.OrderBy(l => l.Glyph))
+            foreach (var kv in letters.GroupBy(l => l.Glyph).OrderBy(g => g.Key))
             {
-                offsets.Add(letter.Glyph, new InternalLetter(letter, position));
-                position += letter.Count;
+                var group = new LetterGroup(kv, offset);
+                result.Add(kv.Key, group);
+                offset += group.Letters.Count;
             }
 
-            wildcardOffset = position;
+            wildcardOffset = offset;
 
-            if (position >= MAX_BITS)
+            if (offset >= MAX_BITS)
                 throw new InvalidOperationException("Number of bits in bit word exhausted");
 
-            return offsets;
+            return result;
         }
     }
 }

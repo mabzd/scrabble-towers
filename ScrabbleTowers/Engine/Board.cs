@@ -1,152 +1,54 @@
-﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace ScrabbleTowers.Engine
 {
-    public class Board : IEnumerable<Tile>
+    public class Board
     {
-        private struct Direction
+        private class Stack
         {
-            public Direction(int x, int y)
+            public Stack(IEnumerable<Tile> tiles = null)
             {
-                X = x;
-                Y = y;
+                Tiles = tiles?.ToList() ?? new List<Tile>();
             }
 
-            public int X { get; }
-            public int Y { get; }
+            public ICollection<Tile> Tiles { get; }
         }
 
-        private const int MAX_TILES = 9;
-        private const int WILDCARD_POSITION = MAX_TILES / 2;
-        private readonly ICollection<Tile> Tiles;
+        private readonly Stack[] Stacks = new Stack[BoardLayer.MAX_TILES];
 
-        private readonly ICollection<Direction> Directions = new[]
+        public Board()
         {
-            new Direction(1, 0),
-            new Direction(1, -1),
-            new Direction(0, -1),
-            new Direction(-1, -1),
-            new Direction(-1, 0),
-            new Direction(-1, 1),
-            new Direction(0, 1),
-            new Direction(1, 1),
-        };
-
-        public Board(IEnumerable<char?> glyphs)
-        {
-            var tiles = CreateTiles(glyphs).ToList();
-            LinkTiles(tiles);
-            Tiles = tiles.Where(t => t != null).ToList();
+            for(int i = 0; i < BoardLayer.MAX_TILES; i++)
+                Stacks[i] = new Stack();
         }
 
-        public IEnumerator<Tile> GetEnumerator()
+        public void AddStack(int x, int y, IEnumerable<Letter> letters)
         {
-            return Tiles.GetEnumerator();
+            AddStack(Tile.ToPosition(x, y), letters);
         }
 
-        public bool IsAllowed(string word)
+        public void AddStack(int position, IEnumerable<Letter> letters)
         {
-            return Traverse(Tiles, 0, word);
+            var tiles = letters?.Select(l => new Tile(l.Glyph, position));
+            var stack = new Stack(tiles);
+            Stacks[position] = stack;
         }
 
-        private bool Traverse(ICollection<Tile> neighbors, int visited, string word)
+        public BoardLayer GetTopLayer()
         {
-            var glyph = word[0];
-            word = word.Substring(1);
+            var tiles = GetTopTiles();
+            return new BoardLayer(tiles);
+        }
 
-            foreach (var neighbor in neighbors)
+        private IEnumerable<Tile> GetTopTiles()
+        {
+            for(int i = 0; i < BoardLayer.MAX_TILES; i++)
             {
-                var bit = 1 << neighbor.Position;
-                var isVisited = (visited & bit) == bit;
-
-                if (!isVisited && (neighbor.Glyph == null || neighbor.Glyph.Value == glyph))
-                {
-                    if (word == "")
-                        return true;
-
-                    if (Traverse(neighbor.Neighbors, visited | bit, word))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        private IEnumerable<Tile> CreateTiles(IEnumerable<char?> glyphs)
-        {
-            var position = 0;
-
-            foreach (var glyph in glyphs)
-            {
-                if (glyph == null)
-                {
-                    yield return position == WILDCARD_POSITION
-                        ? new Tile(WILDCARD_POSITION, null)
-                        : null;
-                }
-                else
-                {
-                    yield return new Tile(position, glyph.Value);
-                }
-
-                position += 1;
-            }
-
-            if (position != MAX_TILES)
-                throw new InvalidOperationException($"Board must consist of {MAX_TILES} tiles");
-        }
-
-        private void LinkTiles(IList<Tile> tiles)
-        {
-            for (int position = 0; position < MAX_TILES; position++)
-            {
-                var tile = tiles[position];
-
+                var tile = Stacks[i].Tiles.LastOrDefault();
                 if (tile != null)
-                {
-                    foreach (var direction in Directions)
-                    {
-                        var neighbor = GetNeighbor(tiles, position, direction);
-
-                        if (neighbor != null)
-                            tile.Neighbors.Add(neighbor);
-                    }
-                }
+                    yield return tile;
             }
-        }
-
-        private (int, int) PositionToXy(int position)
-        {
-            var x = position % 3;
-            var y = position / 3;
-            return (x, y);
-        }
-
-        private int XyToPosition(int x, int y)
-        {
-            return y * 3 + x;
-        }
-
-        private Tile GetNeighbor(IList<Tile> tiles, int position, Direction direction)
-        {
-            var (x, y) = PositionToXy(position);
-
-            x += direction.X;
-            y += direction.Y;
-
-            if (x < 0 || x > 2 || y < 0 || y > 2)
-                return null;
-
-            var newPosition = XyToPosition(x, y);
-            return tiles[newPosition];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }
